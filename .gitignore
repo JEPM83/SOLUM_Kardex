@@ -1,0 +1,76 @@
+# Archivos y carpetas generados por Visual Studio
+.vscode/
+bin/
+obj/
+
+# Carpetas y archivos generados por compilación
+[Bb]in/
+[Ll]og/
+[Ll]og.txt
+[Ll]og.xml
+
+# Carpeta de dependencias de NuGet
+packages/
+
+# Archivos de usuario y configuración de Visual Studio
+*.user
+*.suo
+*.userprefs
+*.sln.docstates
+*.suo
+*.user
+
+# Carpeta de archivos temporales
+[Tt]emp/
+[Tt]est[Rr]esults/
+
+# Carpeta de respaldo
+[Bb]ackup/
+
+# Carpeta de caché
+[Cc]ache/
+
+# Archivos de configuración específicos de Visual Studio
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.suo
+*.suo
+*.suo
+*.suo
+*.suo
+*.suo
+
+# Archivos de configuración específicos de Rider
+.idea/
+*.sln.iml
+*.ipr
+*.iws
+
+# Archivos de caché y registros generados por Rider
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/dictionaries
+.idea/vcs.xml
+.idea/stamps
+
+# Archivos de caché y configuración de Rider
+.idea/caches/
+.idea/libraries/
+.idea/modules.xml
+.idea/namespaces/
+.idea/codeStyles/
+.idea/datasources/
+.idea/dataSources.ids
+.idea/dataSources.xml
+.idea/editor.xml
+.idea/encodings.xml
+.idea/misc.xml
+.idea/scopes/scope_settings.xml
+.idea/uiDesigner.xml
+
+# Archivos de caché y configuración de Visual Studio Code
+.vscode/
+*.code-workspace
+.history/
