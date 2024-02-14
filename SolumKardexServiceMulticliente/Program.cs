@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.EventLog;
 
-namespace SolumTrackingServiceArti
+namespace SolumKardexServiceMulticliente
 {
     public class Program
     {
@@ -21,12 +21,12 @@ namespace SolumTrackingServiceArti
                 .ConfigureLogging(options => options.AddFilter<EventLogLoggerProvider>(level => level >= LogLevel.Information))
                 .ConfigureServices((hostContext, services) =>
                 {
-                    //services.AddHostedService<Worker>();
+                    // services.AddHostedService<Worker>();
                     services.AddHostedService<Worker>()
                     .Configure<EventLogSettings>(config => 
                     { 
-                        config.LogName = "ServicioTrackingArti"; 
-                        config.SourceName = "Servicio Tracking ARTI"; 
+                            config.LogName = "ServicioKardexMulticliente"; 
+                            config.SourceName = "Servicio Kardex Multicliente"; 
                     });
                 });
     }

@@ -11,13 +11,13 @@ using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
 
 namespace SolumInfraestructure.Domain.DBContext
 {
     public class DataContextDB:IPrintSpool
     {
         protected string cnxStringCRM = ConfigurationManager.ConnectionStrings["conexionCRM"].ToString();
-
         public bool cargar_configuracion(eParametros parametros)
         {
             using (SqlConnection conn = new SqlConnection(cnxStringCRM))
@@ -81,6 +81,7 @@ namespace SolumInfraestructure.Domain.DBContext
                         eFtpDetail.Password = rd.GetValue(7).ToString();
                         eFtpDetail.Email = rd.GetBoolean(8);
                         eFtpDetail.Attached = rd.GetBoolean(9);
+                        eFtpDetail.Modelo = rd.GetValue(9) != DBNull.Value ?rd.GetValue(10).ToString() : null;
                         eFtpDetail.LogErr = rd.GetValue(14).ToString();
                         eFtpDetail.Subject = rd.GetValue(12).ToString();
                         eFtpListDetail.Add(eFtpDetail);
@@ -115,7 +116,7 @@ namespace SolumInfraestructure.Domain.DBContext
                 try
                 {
                     rd = cmd.ExecuteReader();
-                    List<List<string>> lista = new List<List<string>>();
+                    //List<List<string>> lista = new List<List<string>>();
                     while (rd.Read())
                     {
                         i++;
@@ -138,6 +139,121 @@ namespace SolumInfraestructure.Domain.DBContext
                     conn.Close();
                 }
             }
+        }
+        public List<eParametros> cargar_parametros() {
+            var eFileListDetail = new List<eParametros>();
+            using (SqlConnection conn = new SqlConnection(cnxStringCRM))
+            using (SqlCommand cmd = new SqlCommand("select Code,U_EX_CLIENTE,U_EX_PROCESO,tipo,hora,minuto,lunes,martes,miercoles,jueves,viernes,sabado,domingo,modalidad,titulo,datos,format(fechainicio,'yyyy-MM-dd') fechainicio,format(fechafin,'yyyy-MM-dd') fechafin,ultimoproceso from [@EX_PLANIFICADO] where state = 0 order by [Code]", conn))
+            {
+                SqlDataReader rd = null;
+                cmd.CommandType = CommandType.Text;
+                conn.Open();
+                int i = 0;
+                Console.WriteLine("Entrando a lista de planificados");
+                try
+                {
+                    rd = cmd.ExecuteReader();
+                    //List<List<string>> lista = new List<List<string>>();
+                    while (rd.Read())
+                    {
+                        i++;
+                        var eFileDetail = new eParametros();
+                        eFileDetail.code = int.Parse(rd.GetValue(0).ToString());
+                        eFileDetail.cliente = rd.GetValue(1).ToString();
+                        eFileDetail.proceso = rd.GetValue(2).ToString();
+                        eFileDetail.tipo =  int.Parse(rd.GetValue(3).ToString());
+                        eFileDetail.hora = rd.GetValue(4) != DBNull.Value ? int.Parse(rd.GetValue(4).ToString()) : null; 
+                        eFileDetail.minuto = rd.GetValue(5) != DBNull.Value ? int.Parse(rd.GetValue(5).ToString()) : null;
+                        eFileDetail.lunes = rd.GetValue(6) != DBNull.Value ? bool.Parse(rd.GetValue(6).ToString()) : null;
+                        eFileDetail.martes = rd.GetValue(7) != DBNull.Value ? bool.Parse(rd.GetValue(7).ToString()) : null;
+                        eFileDetail.miercoles = rd.GetValue(8) != DBNull.Value ? bool.Parse(rd.GetValue(8).ToString()) : null;
+                        eFileDetail.jueves = rd.GetValue(9) != DBNull.Value ? bool.Parse(rd.GetValue(9).ToString()) : null;
+                        eFileDetail.viernes = rd.GetValue(10) != DBNull.Value ? bool.Parse(rd.GetValue(10).ToString()) : null;
+                        eFileDetail.sabado = rd.GetValue(11) != DBNull.Value ? bool.Parse(rd.GetValue(11).ToString()) : null;
+                        eFileDetail.domingo = rd.GetValue(12) != DBNull.Value ? bool.Parse(rd.GetValue(12).ToString()) : null;
+                        eFileDetail.modalidad = rd.GetValue(13) != DBNull.Value ? int.Parse(rd.GetValue(13).ToString()) : null;
+                        eFileDetail.titulo = rd.GetValue(14) != DBNull.Value ? int.Parse(rd.GetValue(14).ToString()) : null;
+                        eFileDetail.datos = rd.GetValue(15) != DBNull.Value ? int.Parse(rd.GetValue(15).ToString()) : null;
+                        eFileDetail.fechainicio = rd.GetValue(16) != DBNull.Value ? rd.GetValue(16).ToString() : null;
+                        eFileDetail.fechafin = rd.GetValue(17) != DBNull.Value ? rd.GetValue(17).ToString() : null;
+                        eFileDetail.ultimoproceso = rd.GetValue(18) != DBNull.Value ? DateTime.Parse(rd.GetValue(18).ToString()) : null;
+                        string hostgroupid = DateTime.Now.ToString("yyyyMMddHHmmssfff");
+                        eFileDetail.hostgroupid = hostgroupid;
+                        DateTime now = DateTime.Now;
+                        DayOfWeek diaSemana = now.DayOfWeek;
+                        //string nombreDiaSemana = diaSemana.ToString();
+                        int hora = now.Hour;
+                        int minuto = now.Minute;
+
+                        int ultimahora = rd.GetValue(18) != DBNull.Value ? DateTime.Parse(eFileDetail.ultimoproceso.ToString()).Hour : 0;
+                        int ultimominuto = rd.GetValue(18) != DBNull.Value ? DateTime.Parse(eFileDetail.ultimoproceso.ToString()).Minute : 0;
+                        if (eFileDetail.tipo == 0)
+                        {
+                            eFileDetail.ejecutar = true;
+                        }
+                        else {
+                            if (validar_dia(diaSemana, eFileDetail) == true)
+                            {
+                                if (hora == eFileDetail.hora && minuto == eFileDetail.minuto)
+                                {
+                                    if (hora == ultimahora && minuto == ultimominuto)
+                                    {
+                                        eFileDetail.ejecutar = false;
+                                    }
+                                    else
+                                    {
+                                        eFileDetail.ejecutar = true;
+                                    }
+                                }
+                                else {
+                                    eFileDetail.ejecutar = false;
+                                }
+                            }
+                            else { 
+                                eFileDetail.ejecutar = false;
+                            }
+                        }
+                        eFileListDetail.Add(eFileDetail);
+                        Console.WriteLine("Planificado del cliente: " + eFileDetail.cliente);
+                    }
+                    rd.Close();
+                    conn.Close();
+                    return eFileListDetail;
+                }
+                finally
+                {
+                    rd.Close();
+                    conn.Close();
+                }
+            }
+        }
+        public bool validar_dia(DayOfWeek diaSemana, eParametros obj) {
+            bool validar = false;
+            switch (diaSemana)
+            {
+                case DayOfWeek.Sunday:
+                    validar = obj.domingo.HasValue && obj.domingo.Value;
+                    break;
+                case DayOfWeek.Monday:
+                    validar = obj.lunes.HasValue && obj.lunes.Value;
+                    break;
+                case DayOfWeek.Tuesday:
+                    validar = obj.martes.HasValue && obj.martes.Value;
+                    break;
+                case DayOfWeek.Wednesday:
+                    validar = obj.miercoles.HasValue && obj.miercoles.Value;
+                    break;
+                case DayOfWeek.Thursday:
+                    validar = obj.jueves.HasValue && obj.jueves.Value;
+                    break;
+                case DayOfWeek.Friday:
+                    validar = obj.viernes.HasValue && obj.viernes.Value;
+                    break;
+                case DayOfWeek.Saturday:
+                    validar = obj.sabado.HasValue && obj.sabado.Value;
+                    break;
+            }
+            return validar;
         }
         public string cargar_company(eParametros parametros)
         {
@@ -171,6 +287,11 @@ namespace SolumInfraestructure.Domain.DBContext
             bool Resultado = false;
             if (objRuta.Email == true)
             {
+                /**/
+                Console.WriteLine("Iniciando proceso de envio de correo");
+                string pathToCertificateFile = ConfigurationManager.AppSettings["PathToCertificateFile"];
+                pathToCertificateFile = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + pathToCertificateFile;
+                /**/
                 using (SqlConnection conn = new SqlConnection(cnxStringCRM))
                 using (SqlCommand cmd = new SqlCommand("select Email,Password,Type from [@EX_CONTACT] where U_EX_RUTA = " + objRuta.Code + " and state = 0", conn))
                 {
@@ -187,7 +308,8 @@ namespace SolumInfraestructure.Domain.DBContext
                         dtSap = new System.Data.DataTable() { TableName = "Contact" };
                         System.Net.Mail.MailMessage mmsg = new System.Net.Mail.MailMessage();
                         System.Net.Mail.SmtpClient clienteC = new System.Net.Mail.SmtpClient();
-                        mmsg.Subject = "OPERADOR SOLUM: Tablas intermedias - Proceso: (" + objParametros.proceso + ") - " + objRuta.Subject + " " + cargar_company(objParametros) + " " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                        //mmsg.Subject = "OPERADOR SOLUM: Envio de Interfaz de Kardex: (" + objParametros.proceso + ") - " + objRuta.Subject + " " + cargar_company(objParametros) + " " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                        mmsg.Subject = "OPERADOR SOLUM: " + objRuta.Subject + " " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
                         mmsg.SubjectEncoding = System.Text.Encoding.UTF8;
                         while (rd.Read())
                         {
@@ -202,52 +324,61 @@ namespace SolumInfraestructure.Domain.DBContext
                                 //Si es gmail
                                 clienteC.Port = 587;
                                 clienteC.EnableSsl = true;
-                                clienteC.Host = "smtp.gmail.com";
+                                X509Certificate certificate = X509Certificate.CreateFromCertFile(pathToCertificateFile);
+                                clienteC.ClientCertificates.Add(certificate);
+                                clienteC.Host = "smtp.office365.com";
                             }
                             else if (int.Parse(rd.GetValue(2).ToString()) == 1)
                             {
                                 mmsg.To.Add(rd.GetValue(0).ToString());
+                                Console.WriteLine("Usuario 1:" + rd.GetValue(0).ToString());
                             }
                             else if (int.Parse(rd.GetValue(2).ToString()) == 2)
                             {
                                 mmsg.CC.Add(rd.GetValue(0).ToString());
+                                Console.WriteLine("Usuario 2:" + rd.GetValue(0).ToString());
                             }
                             else if (int.Parse(rd.GetValue(2).ToString()) == 3)
                             {
                                 mmsg.Bcc.Add(rd.GetValue(0).ToString());
+                                Console.WriteLine("Usuario 3:" + rd.GetValue(0).ToString());
                             }
                         }
                         rd.Close();
                         conn.Close();
                         //Lista de interfaces
-                        using (SqlCommand cmd_log = new SqlCommand("select isnull([LogErr] ,'') , isnull(FileName,''),MessageSystem  from [@EX_LOG] where HostGroupId = '" + objParametros.hostgroupid + "' and State = 0", conn))
+                        using (SqlCommand cmd_log = new SqlCommand("select isnull([Historic] ,'') , isnull(FileName,''),Message  from [@EX_LOG] where HostGroupId = '" + objParametros.hostgroupid + "' and State = 1", conn))
                         {
+                            cmd_log.CommandTimeout = 300;
+                            conn.Open();
                             rd_log = cmd_log.ExecuteReader();
                             cmd_log.CommandType = CommandType.Text;
-                            conn.Open();
                             string mensaje = null;
                             while (rd_log.Read())
                             {
                                 //Environment.NewLine
                                 if (objRuta.Attached == true)
                                 {
-                                    mensaje = mensaje + "ARCHIVO: " + rd_log.GetString(0) + rd_log.GetString(1) + "  ERROR: " + rd_log.GetString(2) + Environment.NewLine;
+                                    //mensaje = mensaje + "ARCHIVO: " + rd_log.GetString(0) + rd_log.GetString(1) + "  MENSAJE: " + rd_log.GetString(2) + Environment.NewLine;
                                     System.Net.Mail.Attachment attachment = new System.Net.Mail.Attachment(rd_log.GetString(0) + rd_log.GetString(1));
                                     mmsg.Attachments.Add(attachment);
+                                    Console.WriteLine("Archivo adjunto");
                                 }
                             }
                             //
-                            mmsg.Body = "Se ha encontrado errores en los siguientes archivos: " + Environment.NewLine + Environment.NewLine + mensaje + Environment.NewLine + "Identificador: " + objParametros.hostgroupid;
+                            mmsg.Body = mensaje + Environment.NewLine + "Identificador: " + objParametros.hostgroupid + Environment.NewLine + "Se ha enviado con éxito";
                             mmsg.BodyEncoding = System.Text.Encoding.UTF8;
                             mmsg.IsBodyHtml = false;
-                            mmsg.Priority = System.Net.Mail.MailPriority.Normal;
+                            mmsg.Priority = System.Net.Mail.MailPriority.High;
 
                             if (j == 1)
                             {
                                 try
                                 {
+                                    Console.WriteLine("Inicio de envio de correo");
                                     clienteC.Send(mmsg);
                                     Resultado = true;
+                                    Console.WriteLine("Correo enviado con éxito");
                                 }
                                 catch (System.Net.Mail.SmtpException ex)
                                 {
@@ -281,20 +412,6 @@ namespace SolumInfraestructure.Domain.DBContext
             }
             return Resultado;
         }
-        public bool EjecutarScript(string strSql, string cliente)
-        {
-            bool Resultado = false;
-            using (SqlConnection conn = new SqlConnection(cnxStringCRM))
-            using (SqlCommand cmd = new SqlCommand("begin tran C" + cliente + " " + strSql + " commit tran C" + cliente, conn))
-            {
-                conn.Open();
-                cmd.CommandTimeout = 1000;
-                cmd.ExecuteNonQuery();
-                Resultado = true;
-                conn.Close();
-            }
-            return Resultado;
-        }
         public bool RegistraEvento(eParametros objParametros, string fileName, string referencia, int status, string messageSystem, string message)
         {
             bool Resultado = false;
@@ -324,16 +441,19 @@ namespace SolumInfraestructure.Domain.DBContext
             }
             return Resultado;
         }
-        public bool EjecutarTracking(eParametros objParametros)
+        public bool ultimoproceso(eParametros objParametros)
         {
             bool Resultado = false;
             try
             {
                 using (SqlConnection conn = new SqlConnection(cnxStringCRM))
-                using (SqlCommand cmd = new SqlCommand(ObjectsDA.EjecutarTracking, conn))
+                using (SqlCommand cmd = new SqlCommand("BZ_JEPM_UltimoProceso_Planificado", conn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add("@HostGroupId", SqlDbType.VarChar).Value = objParametros.hostgroupid == null ? string.Empty : objParametros.hostgroupid; ;
+                    cmd.Parameters.Add("@Code", SqlDbType.Int).Value = objParametros.code; ;
+                    cmd.Parameters.Add("@Auditoria", SqlDbType.DateTime).Value = DateTime.Now; ;
+                    cmd.Parameters.Add("@Mensaje", SqlDbType.NVarChar).Value = objParametros.mensaje; ;
+                    cmd.Parameters.Add("@Hostgroupid", SqlDbType.VarChar).Value = objParametros.hostgroupid; ;
                     conn.Open();
                     cmd.ExecuteNonQuery();
                     Resultado = true;
@@ -345,6 +465,85 @@ namespace SolumInfraestructure.Domain.DBContext
                 throw new Exception(e.ToString());
             }
             return Resultado;
+        }
+        public eModelo cargar_modelo(eRuta ruta)
+        {
+            var eFileListDetail = new eModelo();
+            using (SqlConnection conn = new SqlConnection(cnxStringCRM))
+            using (SqlCommand cmd = new SqlCommand("select Code,Name,SQL,Columnas,State from [@EX_MODELO] where Code = '" + ruta.Modelo + "' and state = 0", conn))
+            {
+                SqlDataReader rd = null;
+                cmd.CommandType = CommandType.Text;
+                conn.Open();
+                int i = 0;
+                Console.WriteLine("Entrando a obtener archivo");
+                try
+                {
+                    rd = cmd.ExecuteReader();
+                    while (rd.Read())
+                    {
+                        i++;
+                        var eFileDetail = new eModelo();
+                        eFileDetail.code = rd.GetValue(0) != DBNull.Value ? rd.GetValue(0).ToString() : null;
+                        eFileDetail.name = rd.GetValue(1) != DBNull.Value ? rd.GetValue(1).ToString() : null;
+                        eFileDetail.sql = rd.GetValue(2) != DBNull.Value ? rd.GetValue(2).ToString() : null;
+                        eFileDetail.columnas = rd.GetValue(3) != DBNull.Value ? int.Parse(rd.GetValue(3).ToString()) : null;
+                        eFileListDetail = eFileDetail;
+                    }
+                    rd.Close();
+                    conn.Close();
+                    return eFileListDetail;
+                }
+                finally
+                {
+                    rd.Close();
+                    conn.Close();
+                }
+            }
+        }
+        public List<eKardex> EjecutarKardex(eParametros objParametros,eModelo modelo)
+        {
+            try
+            {
+                var eFileListDetail = new List<eKardex>();
+                using (SqlConnection conn = new SqlConnection(cnxStringCRM))
+                using (SqlCommand cmd = new SqlCommand(modelo.sql, conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add("@SN", SqlDbType.VarChar).Value = "C" + objParametros.cliente ;
+                    cmd.Parameters.Add("@FechaInicio", SqlDbType.Date).Value = objParametros.fechainicio ?? DateTime.Now.AddDays(-1).ToString("yyyy-MM-dd");
+                    cmd.Parameters.Add("@FechaFin", SqlDbType.Date).Value = objParametros.fechafin ?? DateTime.Now.AddDays(-1).ToString("yyyy-MM-dd");
+                    cmd.CommandTimeout = 300;
+                    conn.Open();
+                    SqlDataReader rd = null;
+                    rd = cmd.ExecuteReader();
+                    while (rd.Read())
+                    {
+                        var eFileDetail = new eKardex();
+                        eFileDetail.Fecha = rd.GetValue(0) != DBNull.Value ? rd.GetValue(0).ToString().Substring(0,10) : null;
+                        eFileDetail.TipoDocumento = rd.GetValue(1) != DBNull.Value ? rd.GetValue(1).ToString() : null;
+                        eFileDetail.NumeroDocumento = rd.GetValue(2) != DBNull.Value ? rd.GetValue(2).ToString() : null;
+                        eFileDetail.Referencia = rd.GetValue(4) != DBNull.Value ? rd.GetValue(4).ToString() : null;
+                        eFileDetail.CodAlmacen = rd.GetValue(5) != DBNull.Value ? rd.GetValue(5).ToString() : null;
+                        eFileDetail.Almacen = rd.GetValue(6) != DBNull.Value ? rd.GetValue(6).ToString() : null;
+                        eFileDetail.Linea = rd.GetValue(7) != DBNull.Value ? rd.GetValue(7).ToString() : null;
+                        eFileDetail.CodArticulo = rd.GetValue(8) != DBNull.Value ? rd.GetValue(8).ToString() : null;
+                        eFileDetail.Articulo = rd.GetValue(9) != DBNull.Value ? rd.GetValue(9).ToString() : null;
+                        eFileDetail.Ingreso = rd.GetValue(10) != DBNull.Value ? rd.GetValue(10).ToString() : null;
+                        eFileDetail.Salida = rd.GetValue(11) != DBNull.Value ? rd.GetValue(11).ToString() : null;
+                        eFileDetail.Saldoacumulado = rd.GetValue(12) != DBNull.Value ? rd.GetValue(12).ToString() : null;
+                        eFileListDetail.Add(eFileDetail);
+                    }
+                    rd.Close();
+                    conn.Close();
+                    cmd.Dispose();
+                    return eFileListDetail;
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.ToString());
+            }
         }
     }
     }

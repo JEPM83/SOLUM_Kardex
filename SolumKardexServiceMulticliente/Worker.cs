@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 
-namespace SolumTrackingServiceArti
+namespace SolumKardexServiceMulticliente
 {
     public class Worker : BackgroundService
     {
@@ -21,8 +21,7 @@ namespace SolumTrackingServiceArti
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                
-                SolumTrackingService.Program Tracking = new SolumTrackingService.Program();
+                SolumKardexService.Program Tracking = new SolumKardexService.Program();
                 Tracking.Servicio();
                 _logger.LogInformation($"{nameof(ExecuteAsync)} running at: {DateTimeOffset.Now}");
                 await Task.Delay(1000, stoppingToken);
