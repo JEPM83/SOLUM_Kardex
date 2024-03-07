@@ -185,8 +185,9 @@ namespace SolumInfraestructure.Domain.DBContext
                         int hora = now.Hour;
                         int minuto = now.Minute;
 
-                        int ultimahora = rd.GetValue(18) != DBNull.Value ? DateTime.Parse(eFileDetail.ultimoproceso.ToString()).Hour : 0;
-                        int ultimominuto = rd.GetValue(18) != DBNull.Value ? DateTime.Parse(eFileDetail.ultimoproceso.ToString()).Minute : 0;
+                        int? ultimahora = rd.GetValue(18) != DBNull.Value ? DateTime.Parse(eFileDetail.ultimoproceso.ToString()).Hour : null;
+                        int? ultimominuto = rd.GetValue(18) != DBNull.Value ? DateTime.Parse(eFileDetail.ultimoproceso.ToString()).Minute : null;
+                        DayOfWeek? ultimodia = rd.GetValue(18) != DBNull.Value ? DateTime.Parse(eFileDetail.ultimoproceso.ToString()).DayOfWeek : null;
                         if (eFileDetail.tipo == 0)
                         {
                             eFileDetail.ejecutar = true;
@@ -196,7 +197,7 @@ namespace SolumInfraestructure.Domain.DBContext
                             {
                                 if (hora == eFileDetail.hora && minuto == eFileDetail.minuto)
                                 {
-                                    if (hora == ultimahora && minuto == ultimominuto)
+                                    if (hora == ultimahora && minuto == ultimominuto && diaSemana == ultimodia)
                                     {
                                         eFileDetail.ejecutar = false;
                                     }
@@ -444,6 +445,7 @@ namespace SolumInfraestructure.Domain.DBContext
         public bool ultimoproceso(eParametros objParametros)
         {
             bool Resultado = false;
+            objParametros.usuario = Environment.UserName;
             try
             {
                 using (SqlConnection conn = new SqlConnection(cnxStringCRM))
@@ -454,6 +456,7 @@ namespace SolumInfraestructure.Domain.DBContext
                     cmd.Parameters.Add("@Auditoria", SqlDbType.DateTime).Value = DateTime.Now; ;
                     cmd.Parameters.Add("@Mensaje", SqlDbType.NVarChar).Value = objParametros.mensaje; ;
                     cmd.Parameters.Add("@Hostgroupid", SqlDbType.VarChar).Value = objParametros.hostgroupid; ;
+                    cmd.Parameters.Add("@usuario", SqlDbType.VarChar).Value = objParametros.usuario; ;
                     conn.Open();
                     cmd.ExecuteNonQuery();
                     Resultado = true;
@@ -520,7 +523,7 @@ namespace SolumInfraestructure.Domain.DBContext
                     while (rd.Read())
                     {
                         var eFileDetail = new eKardex();
-                        eFileDetail.Fecha = rd.GetValue(0) != DBNull.Value ? rd.GetValue(0).ToString().Substring(0,10) : null;
+                        eFileDetail.Fecha = rd.GetValue(0) != DBNull.Value ? DateTime.Parse(rd.GetValue(0).ToString()).Date.ToString("dd/MM/yyyy") : null;
                         eFileDetail.TipoDocumento = rd.GetValue(1) != DBNull.Value ? rd.GetValue(1).ToString() : null;
                         eFileDetail.NumeroDocumento = rd.GetValue(2) != DBNull.Value ? rd.GetValue(2).ToString() : null;
                         eFileDetail.Referencia = rd.GetValue(4) != DBNull.Value ? rd.GetValue(4).ToString() : null;

@@ -30,6 +30,7 @@ namespace SolumInfraestructure.Domain.Entities
         private bool _ejecutar;
         private DateTime? _ultimoproceso;
         private string? _mensaje;
+        private string? _usuario;
         public int code{ get => _code; set => _code= value; }
         public string hostgroupid { get => _hostgroupid; set => _hostgroupid = value; }
         public string sociedad { get => _sociedad; set => _sociedad = value; }
@@ -54,5 +55,6 @@ namespace SolumInfraestructure.Domain.Entities
         public bool ejecutar { get => _ejecutar; set => _ejecutar = value;}
         public DateTime? ultimoproceso { get => _ultimoproceso; set  => _ultimoproceso = value;}
         public string? mensaje { get => _mensaje; set => _mensaje = value; }
+        public string? usuario { get => _usuario; set => _usuario = value; }
     }
 }
