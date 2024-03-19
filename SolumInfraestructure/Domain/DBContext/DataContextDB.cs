@@ -526,6 +526,7 @@ namespace SolumInfraestructure.Domain.DBContext
                         eFileDetail.Fecha = rd.GetValue(0) != DBNull.Value ? DateTime.Parse(rd.GetValue(0).ToString()).Date.ToString("dd/MM/yyyy") : null;
                         eFileDetail.TipoDocumento = rd.GetValue(1) != DBNull.Value ? rd.GetValue(1).ToString() : null;
                         eFileDetail.NumeroDocumento = rd.GetValue(2) != DBNull.Value ? rd.GetValue(2).ToString() : null;
+                        eFileDetail.NumeroReferencia = rd.GetValue(3) != DBNull.Value ? rd.GetValue(3).ToString() : null;
                         eFileDetail.Referencia = rd.GetValue(4) != DBNull.Value ? rd.GetValue(4).ToString() : null;
                         eFileDetail.CodAlmacen = rd.GetValue(5) != DBNull.Value ? rd.GetValue(5).ToString() : null;
                         eFileDetail.Almacen = rd.GetValue(6) != DBNull.Value ? rd.GetValue(6).ToString() : null;

@@ -357,15 +357,16 @@ namespace SolumInfraestructure.Service
                         headerRow.CreateCell(0).SetCellValue("Fecha");
                         headerRow.CreateCell(1).SetCellValue("TipoDocumento");
                         headerRow.CreateCell(2).SetCellValue("NumeroDocumento");
-                        headerRow.CreateCell(3).SetCellValue("Referencia");
-                        headerRow.CreateCell(4).SetCellValue("CodAlmacen");
-                        headerRow.CreateCell(5).SetCellValue("Almacen");
-                        headerRow.CreateCell(6).SetCellValue("Linea");
-                        headerRow.CreateCell(7).SetCellValue("CodArticulo");
-                        headerRow.CreateCell(8).SetCellValue("Articulo");
-                        headerRow.CreateCell(9).SetCellValue("Ingreso");
-                        headerRow.CreateCell(10).SetCellValue("Salida");
-                        headerRow.CreateCell(11).SetCellValue("Saldoacumulado");
+                        headerRow.CreateCell(3).SetCellValue("NumeroReferencia");
+                        headerRow.CreateCell(4).SetCellValue("Referencia");
+                        headerRow.CreateCell(5).SetCellValue("CodAlmacen");
+                        headerRow.CreateCell(6).SetCellValue("Almacen");
+                        headerRow.CreateCell(7).SetCellValue("Linea");
+                        headerRow.CreateCell(8).SetCellValue("CodArticulo");
+                        headerRow.CreateCell(9).SetCellValue("Articulo");
+                        headerRow.CreateCell(10).SetCellValue("Ingreso");
+                        headerRow.CreateCell(11).SetCellValue("Salida");
+                        headerRow.CreateCell(12).SetCellValue("Saldoacumulado");
 
                         // Llenar la hoja de trabajo con los datos de la lista
                         for (int i = 0; i < lkardex.Count; i++)
@@ -375,15 +376,16 @@ namespace SolumInfraestructure.Service
                             dataRow.CreateCell(0).SetCellValue(kardex.Fecha);
                             dataRow.CreateCell(1).SetCellValue(kardex.TipoDocumento);
                             dataRow.CreateCell(2).SetCellValue(kardex.NumeroDocumento);
-                            dataRow.CreateCell(3).SetCellValue(kardex.Referencia);
-                            dataRow.CreateCell(4).SetCellValue(kardex.CodAlmacen);
-                            dataRow.CreateCell(5).SetCellValue(kardex.Almacen);
-                            dataRow.CreateCell(6).SetCellValue(kardex.Linea);
-                            dataRow.CreateCell(7).SetCellValue(kardex.CodArticulo);
-                            dataRow.CreateCell(8).SetCellValue(kardex.Articulo);
-                            dataRow.CreateCell(9).SetCellValue(kardex.Ingreso);
-                            dataRow.CreateCell(10).SetCellValue(kardex.Salida);
-                            dataRow.CreateCell(11).SetCellValue(kardex.Saldoacumulado);
+                            dataRow.CreateCell(3).SetCellValue(kardex.NumeroReferencia);
+                            dataRow.CreateCell(4).SetCellValue(kardex.Referencia);
+                            dataRow.CreateCell(5).SetCellValue(kardex.CodAlmacen);
+                            dataRow.CreateCell(6).SetCellValue(kardex.Almacen);
+                            dataRow.CreateCell(7).SetCellValue(kardex.Linea);
+                            dataRow.CreateCell(8).SetCellValue(kardex.CodArticulo);
+                            dataRow.CreateCell(9).SetCellValue(kardex.Articulo);
+                            dataRow.CreateCell(10).SetCellValue(kardex.Ingreso);
+                            dataRow.CreateCell(11).SetCellValue(kardex.Salida);
+                            dataRow.CreateCell(12).SetCellValue(kardex.Saldoacumulado);
                         }
                         if (Directory.Exists(Path.GetDirectoryName(objRuta.Historic)))
                         {
